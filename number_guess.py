@@ -159,9 +159,21 @@ class Guess():
 		label.grid(row=0, column=0, padx=10, pady=10, sticky='esnw')
 		btn.grid(row=1, column=0, padx=10, pady=10, sticky='esn')
 
-	# store and display highscores (not created yet)
+	# store and display highscores
 	def hscore(self):
-		print('hscore')
+		hscore = f''
+		f = open('bin','r').readlines() # read stored highscores from bin file
+		for line in f:
+			line = line.split(',')
+			hscore += f'{line[0]}\t\t{line[1]}'
+		hscore_win = Toplevel(root) # creating window to display highscores
+		hscore_win.resizable(0,0)
+		hscore_win.title('Highscores')
+
+		label = Label(hscore_win, text=hscore, anchor='center', font=('Arial', 15))
+		btn = Button(hscore_win, text='OK', command=hscore_win.destroy)
+		label.grid(row=0, column=0, padx=10, pady=10, sticky='esnw')
+		btn.grid(row=1, column=0, padx=10, pady=10, sticky='esn')
 
 	# function to ask for permission when quitting
 	def quit(self):
@@ -192,4 +204,5 @@ class Guess():
 
 Guess()
 
+root.protocol('WM_DELETE_WINDOW', lambda:Guess.quit(Guess))
 root.mainloop()
