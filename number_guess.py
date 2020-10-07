@@ -30,6 +30,8 @@ def _rc_menu_install(w):
 root = Tk()
 root.title('Number Guess')
 root.resizable(0,0)
+root.attributes('-topmost',0)
+
 
 class Guess():
 	score = IntVar() # variable for store score
@@ -38,6 +40,7 @@ class Guess():
 	hints = [] # list for storing hints
 	number_str = StringVar()
 	number_str.set('???')
+	name = 'Player'
 
 	# creating main ui widgets
 	def __init__(self):
@@ -61,7 +64,10 @@ class Guess():
 		self.score_lbl.grid(row=5, column=0,padx=75)
 		self.score.grid(row=6, column=0,padx=75, pady=20)
 
+		root.focus_force()
+
 		self.hint() # generating hints and storing them in hints attribute
+		self.name() # input name window
 
 	# contents of the main menu
 	def menu_cont(self):
@@ -161,11 +167,17 @@ class Guess():
 
 	# store and display highscores
 	def hscore(self):
+		hscore_dict = {} # dictionary to keep scores
 		hscore = f''
-		f = open('bin','r').readlines() # read stored highscores from bin file
-		for line in f:
+		f = open('bin','r') # open bin file to read scores
+		lines = f.readlines() # read stored highscores from bin file
+		for line in lines:
 			line = line.split(',')
-			hscore += f'{line[0]}\t\t{line[1]}'
+			hscore_dict[line[0]] = int(line[1]) # keep scores in a dictionary for sorting
+		sorted(hscore_dict.items(), key=lambda x: x[1], reverse=True) # sorting scores
+		for key, value in hscore_dict.items():
+			hscore += f'{key}\t\t{value}\n'
+
 		hscore_win = Toplevel(root) # creating window to display highscores
 		hscore_win.resizable(0,0)
 		hscore_win.title('Highscores')
@@ -174,6 +186,8 @@ class Guess():
 		btn = Button(hscore_win, text='OK', command=hscore_win.destroy)
 		label.grid(row=0, column=0, padx=10, pady=10, sticky='esnw')
 		btn.grid(row=1, column=0, padx=10, pady=10, sticky='esn')
+
+		f.close()
 
 	# function to ask for permission when quitting
 	def quit(self):
@@ -196,9 +210,33 @@ class Guess():
 			win.resizable(0,0)
 			label = Label(win, font=('Cooper', 24), background='#ff6a6a', text=f'Congratulations!!\nYou have won the game!\nYour score is {Guess.score.get()}', anchor='center')
 			label.grid(row=0, column=0, padx=10, pady=10)
+
+			f = open('bin', 'a') # open bin file to store highscores
+			line = Guess.name + ',' + str(Guess.score.get()) + '\n'
+			f.write(line) # write on bin file
+			f.close() # close bin file
 		else:
 			Guess.number_str.set('Try Again!!')
 			Guess.score.set(Guess.score.get()-1)
+
+	# input name function
+	def name(self):
+		def save():
+			Guess.name = name_ent.get() # store name in name attribute
+			name_win.destroy() # quit from name input window
+
+		name_win = Toplevel(root) # name input window
+
+		name_lbl = Label(name_win, text='Enter your name', anchor='center', font=('Arial', 15))
+		name_ent = EntryPlus(name_win, font=('Arial', 15))
+		name_btn = Button(name_win, text='Save', command=save)
+
+		name_lbl.grid(row=0, column=0, padx=10, pady=10, sticky='esnw')
+		name_ent.grid(row=1, column=0, padx=10, pady=10, sticky='esnw')
+		name_btn.grid(row=2, column=0, padx=10, pady=10, sticky='esn')
+
+		name_win.lift()
+		name_win.attributes('-topmost', 1)
 
 
 
