@@ -66,8 +66,8 @@ class Guess():
 
 		root.focus_force()
 
-		self.hint() # generating hints and storing them in hints attribute
-		self.name() # input name window
+		self.gen_hint() # generating hints and storing them in hints attribute
+		self.name_win_func() # input name window
 
 	# contents of the main menu
 	def menu_cont(self):
@@ -75,10 +75,12 @@ class Guess():
 		menu.add_command(label='How to play?')
 		menu.add_command(label='Hint')
 		menu.add_command(label='Highscores')
+		menu.add_command(label='New Game')
 		menu.add_command(label='Quit')
 		menu.entryconfigure('How to play?', command=self.help)
 		menu.entryconfigure('Hint', command=self.hint_window)
 		menu.entryconfigure('Highscores', command=self.hscore)
+		menu.entryconfigure('New Game', command=self.new_game)
 		menu.entryconfigure('Quit', command=self.quit)
 		self.menu.add_cascade(label='Menu', menu=menu)
 		root.config(menu=self.menu)
@@ -95,7 +97,7 @@ class Guess():
 		button.grid(row=1, column=0, sticky='e')
 
 	# generating hints for storing in the hints attribute
-	def hint(self):
+	def gen_hint(self):
 		# check if the number is odd or even
 		def odd_even(num):
 			if num % 2 == 0:
@@ -155,7 +157,6 @@ class Guess():
 		hint.title('Hint')
 		if Guess.hints != []:
 			label = Label(hint, text=Guess.hints.pop(0), anchor='center', font=('Arial', 15))
-			print(Guess.hints)
 			label.update()
 			Guess.score.set(Guess.score.get()-5)
 		else:
@@ -174,9 +175,13 @@ class Guess():
 		for line in lines:
 			line = line.split(',')
 			hscore_dict[line[0]] = int(line[1]) # keep scores in a dictionary for sorting
-		sorted(hscore_dict.items(), key=lambda x: x[1], reverse=True) # sorting scores
-		for key, value in hscore_dict.items():
-			hscore += f'{key}\t\t{value}\n'
+		hscore_sorted = sorted(hscore_dict.items(), key=lambda x: x[1], reverse=True) # sorting scores
+		if len(hscore_sorted) > 10:
+			for item in hscore_sorted[:10]:
+				hscore += f'{item[0]}\t\t{item[1]}\n'
+		else:
+			for item in hscore_sorted:
+				hscore += f'{item[0]}\t\t{item[1]}\n'
 
 		hscore_win = Toplevel(root) # creating window to display highscores
 		hscore_win.resizable(0,0)
@@ -208,7 +213,7 @@ class Guess():
 			Guess.number_str.set(str(Guess.num))
 			win = Toplevel(root)
 			win.resizable(0,0)
-			label = Label(win, font=('Cooper', 24), background='#ff6a6a', text=f'Congratulations!!\nYou have won the game!\nYour score is {Guess.score.get()}', anchor='center')
+			label = Label(win, font=('Cooper', 24), background='#ff6a6a', justify='center', text=f'Congratulations!!\nYou have won the game!\nYour score is {Guess.score.get()}', anchor='center')
 			label.grid(row=0, column=0, padx=10, pady=10)
 
 			f = open('bin', 'a') # open bin file to store highscores
@@ -219,10 +224,35 @@ class Guess():
 			Guess.number_str.set('Try Again!!')
 			Guess.score.set(Guess.score.get()-1)
 
+	# new game function
+	def new_game(self):
+		def new():
+			warn.destroy()
+			Guess.score.set(100) # set score again to 100
+			Guess.num = random.randint(10,99) # generating a new number to guess
+			Guess.hints = [] # resetting hints
+			self.gen_hint()
+			Guess.number_str.set('???')
+			Guess.name = 'Player' # change name back to default
+			self.guess_ent.delete(0,END)
+			self.name_win_func() # input new name
+
+		warn = Toplevel(root)
+		warn.resizable(0,0)
+		label = Label(warn, text='Are you sure?', font=('Arial', 14))
+		ybtn = Button(warn, text='Yes', command=new)
+		nbtn = Button(warn, text='No', command=warn.destroy)
+
+		label.grid(row=0, column=1, columnspan=3,padx=100, pady=10, sticky='nesw')
+		ybtn.grid(row=1, column=1, padx=10, pady=10, sticky='e')
+		nbtn.grid(row=1, column=2, padx=10, pady=10, sticky='e')
+
+
 	# input name function
-	def name(self):
+	def name_win_func(self):
 		def save():
-			Guess.name = name_ent.get() # store name in name attribute
+			if name_ent.get():
+				Guess.name = name_ent.get() # store name in name attribute
 			name_win.destroy() # quit from name input window
 
 		name_win = Toplevel(root) # name input window
@@ -237,7 +267,6 @@ class Guess():
 
 		name_win.lift()
 		name_win.attributes('-topmost', 1)
-
 
 
 Guess()
